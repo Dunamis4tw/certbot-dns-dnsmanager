@@ -1,32 +1,97 @@
 # certbot-dns-dnsmanager
-ISPsystem DNS API for certbot --manual-auth-hook --manual-cleanup-hook
 
-Install and renew Let's encrypt wildcard ssl certificate for domain *.site.com using ISPsystem DNS API:
+ISPsystem DNS API support for Certbot's `--manual-auth-hook` and `--manual-cleanup-hook`.
 
-#### 1) Clone this repo and set the API key
+Use this to install and renew Let's Encrypt wildcard SSL certificates (e.g. for `*.example.com`) via DNS validation using ISPmanager's DNS API.
+
+---
+
+### ✅ Features
+
+- Fully automatic DNS-01 challenge handling for Let's Encrypt
+- Works with ISPmanager / DNSmanager API (`dnsmgr`)
+- Simple configuration with bash scripts
+- Supports wildcard certificates (e.g. `*.yourdomain.com`)
+
+---
+
+### 📦 Files
+
+- `auth-hook.sh` — script to add the required TXT record for domain validation
+- `cleanup-hook.sh` — script to remove the TXT record after validation
+- `config.sh` — your personal API credentials and DNS panel config
+
+---
+
+### 🚀 Setup instructions
+
+#### 1) Clone this repository and enter the folder
+
 ```bash
-git clone https://github.com/gordienko/certbot-dns-dnsmanager.git && cd ./certbot-dns-dnsmanager
+git clone https://github.com/Dunamis4tw/certbot-dns-dnsmanager.git
+cd ./certbot-dns-dnsmanager
 ```
 
-#### 2) Edit access settings
+#### 2) Configure access credentials
 
-Get the parameters in your control panel or in your provider's billing system.
+Edit `config.sh` with your ISPmanager/DNSmanager API access:
 
 ```bash
 nano ./config.sh
 ```
 
-#### 3) Install CertBot from git
+Example:
+
 ```bash
-cd ../ && git clone https://github.com/certbot/certbot && cd certbot
+# Get your username and password from BILLmanager.
+API_USERNAME=admin
+API_PASSWORD=yourpassword
+API_HOST=example.com
 ```
 
-#### 4) Generate wildcard
+#### 3) Install Certbot
+
+If Certbot is not installed yet:
+
 ```bash
-./letsencrypt-auto certonly --manual-public-ip-logging-ok --agree-tos --email info@site.com --renew-by-default -d site.com -d *.site.com --manual --manual-auth-hook ../certbot-dns-dnsmanager/authenticator.sh --manual-cleanup-hook ../certbot-dns-dnsmanager/cleanup.sh --preferred-challenges dns-01 --server https://acme-v02.api.letsencrypt.org/directory
+sudo apt update && sudo apt install certbot
 ```
 
-#### 5) Force Renew
+Or you can use `letsencrypt-auto` from source (optional).
+
+#### 4) Issue a wildcard certificate
+
 ```bash
-./letsencrypt-auto renew --force-renew --manual --manual-auth-hook ../certbot-dns-dnsmanager/authenticator.sh --manual-cleanup-hook ../certbot-dns-dnsmanager/cleanup.sh --preferred-challenges dns-01 --server https://acme-v02.api.letsencrypt.org/directory
+sudo certbot certonly \
+  --manual \
+  --manual-public-ip-logging-ok \
+  --agree-tos \
+  --email you@example.com \
+  --renew-by-default \
+  -d example.com \
+  -d '*.example.com' \
+  --manual-auth-hook "$PWD/auth-hook.sh" \
+  --manual-cleanup-hook "$PWD/cleanup-hook.sh" \
+  --preferred-challenges dns-01 \
+  --server https://acme-v02.api.letsencrypt.org/directory
 ```
+
+#### 5) Force renew manually
+
+```bash
+cd /path/to/certbot-dns-dnsmanager
+sudo certbot renew \
+  --force-renew \
+  --manual \
+  --manual-auth-hook "$PWD/auth-hook.sh" \
+  --manual-cleanup-hook "$PWD/cleanup-hook.sh" \
+  --preferred-challenges dns-01 \
+  --server https://acme-v02.api.letsencrypt.org/directory
+```
+
+---
+
+### 📄 License
+
+This project is a fork of [gordienko/certbot-dns-dnsmanager](https://github.com/gordienko/certbot-dns-dnsmanager)\
+MIT License.
